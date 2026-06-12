@@ -44,8 +44,7 @@
   "include": [
     "**/*.ts",
     "**/*.d.ts",
-    "**/*.tsx",
-    "**/*.vue"
+    "**/*.tsx"
   ],
   "exclude": [
     "../../node_modules"
