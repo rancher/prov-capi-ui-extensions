@@ -1,0 +1,2 @@
+"use strict";(("undefined"!==typeof self?self:this)["webpackChunkcapa_0_0_0_rc2"]=("undefined"!==typeof self?self:this)["webpackChunkcapa_0_0_0_rc2"]||[]).push([[277],{28277:function(e,n,c){c.r(n),c.d(n,{default:function(){return f}});var t=c(9274);function r(e,n,c,r,o,s){const a=(0,t.resolveComponent)("ResourceDetail");return(0,t.openBlock)(),(0,t.createBlock)(a)}var o=c(78450),s={name:"ClusterResourceNamespaceId",components:{ResourceDetail:o.A}},a=c(47433);const u=(0,a.A)(s,[["render",r]]);var f=u}}]);
+//# sourceMappingURL=capa-0.0.0-rc2.umd.min.277.js.map

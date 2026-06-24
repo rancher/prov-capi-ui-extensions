@@ -1,0 +1,2 @@
+"use strict";(("undefined"!==typeof self?self:this)["webpackChunkcapa_0_0_0_rc2"]=("undefined"!==typeof self?self:this)["webpackChunkcapa_0_0_0_rc2"]||[]).push([[303],{66303:function(e,n,t){t.r(n),t.d(n,{default:function(){return f}});var c=t(9274);function r(e,n,t,r,o,s){const u=(0,c.resolveComponent)("ResourceDetail");return(0,c.openBlock)(),(0,c.createBlock)(u)}var o=t(78450),s={name:"ClusterResourcedId",components:{ResourceDetail:o.A}},u=t(47433);const a=(0,u.A)(s,[["render",r]]);var f=a}}]);
+//# sourceMappingURL=capa-0.0.0-rc2.umd.min.303.js.map
