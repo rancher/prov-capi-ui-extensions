@@ -626,7 +626,6 @@ watch([
       :loading-subnets="loadingSubnets"
       :loading-instance-types="loadingInstanceTypes"
       :auto-populated-ami-id="autoPopulatedAmiId"
-      @validationChanged="$emit('validationChanged', $event)"
     />
     <StorageSection
       v-model:root-volume-size="rootVolumeSize"

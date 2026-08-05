@@ -40,32 +40,30 @@ spec:
 
 const MACHINE_SELECTOR_CONFIG_RKE2 = [
   {
-    config: {
-      'disable-cloud-controller': 'true',
-      machineLabelSelector:       {
-        matchExpressions: [
-          {
-            key:      'rke.cattle.io/control-plane-role',
-            operator: 'In',
-            values:   ['true']
-          }
-        ]
-      }
+    config:               { 'disable-cloud-controller': 'true' },
+    machineLabelSelector: {
+      matchExpressions: [
+        {
+          key:      'rke.cattle.io/control-plane-role',
+          operator: 'In',
+          values:   ['true']
+        }
+      ]
     }
+
   },
   {
-    config: {
-      'disable-cloud-controller': 'true',
-      machineLabelSelector:       {
-        matchExpressions: [
-          {
-            key:      'rke.cattle.io/etcd-role',
-            operator: 'In',
-            values:   ['true']
-          }
-        ]
-      }
+    config:               { 'disable-cloud-controller': 'true' },
+    machineLabelSelector: {
+      matchExpressions: [
+        {
+          key:      'rke.cattle.io/etcd-role',
+          operator: 'In',
+          values:   ['true']
+        }
+      ]
     }
+
   }
 ];
 
