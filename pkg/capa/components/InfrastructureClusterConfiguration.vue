@@ -19,7 +19,9 @@ import * as AWS from '@shell/types/aws-sdk';
 import { useFormValidation } from '@shell/composables/useFormValidation';
 import * as validators from '../validators';
 import { CAPA } from '../labels-annotations';
-import type { IngressRule, CNIIngressRule, SubnetSpec, SecurityGroupRole, Tags, RancherAwsCloudCredential } from '../types/capa';
+import type {
+  IngressRule, CNIIngressRule, SubnetSpec, SecurityGroupRole, Tags, RancherAwsCloudCredential
+} from '../types/capa';
 
 defineOptions({ name: 'ClusterConfiguration' });
 
@@ -30,7 +32,6 @@ const defaultConfig = DEFAULT_CLUSTER_CONFIG;
 interface Props {
   value: any;
   mode: string;
-  provider?: string;
   credentialId?: any;
   provisioningCluster?: any;
 }
@@ -38,7 +39,6 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   mode:                _CREATE,
   value:               () => ({ spec: {} }),
-  provider:            '',
   credentialId:        null,
   provisioningCluster: {}
 });
@@ -58,7 +58,7 @@ if (value.value && !value.value.spec) {
 const store = useStore();
 const { t } = useI18n(store);
 const credentialErrors = ref<string[]>([]); // errors fetching data to populate the form (do not block form submission)
-const credential = ref<RancherAwsCloudCredential>({}) // rancher cloud credential resource, needed to get an identity reference and default region
+const credential = ref<RancherAwsCloudCredential>({}); // rancher cloud credential resource, needed to get an identity reference and default region
 const useUnmanagedNetwork = ref(false); // used by a radio in networking and doesn't correspond to anything in cluster config - tracking it here to use w/ validators
 const ec2Client = ref(null);
 const regionInfo = ref<AWS.EC2Region[]>([]);
@@ -71,24 +71,24 @@ const securityGroupInfo = ref<AWS.SecurityGroup[]>([]);
 const loadingVpcs = ref(false);
 const loadingSubnets = ref(false);
 const loadingSecurityGroups = ref(false);
-const showIdentityError = ref(false)
+const showIdentityError = ref(false);
 let identityRetryTimer: ReturnType<typeof setInterval> | null = null;
 
 const { getRules, isFormValid } = useFormValidation(
   t,
   [
-    { path: 'region',    rules: ['region'] },
-    { path: 'vpc',       rules: ['vpc'] },
-    { path: 'subnet',    rules: ['subnet'] },
+    { path: 'region', rules: ['region'] },
+    { path: 'vpc', rules: ['vpc'] },
+    { path: 'subnet', rules: ['subnet'] },
     { path: 'cidrBlock', rules: ['cidrBlock'] },
     { path: 'additionalControlPlaneIngressRules', rules: ['additionalControlPlaneIngressRules'] },
-    { path: 'additionalNodeIngressRules',          rules: ['additionalNodeIngressRules'] },
+    { path: 'additionalNodeIngressRules', rules: ['additionalNodeIngressRules'] },
   ],
   {
-    region:    (val: unknown) => validators.region(t, val as string),
-    vpc:       (val: unknown) => validators.vpc(t, val as string, useUnmanagedNetwork.value),
-    subnet:    (val: unknown) => validators.subnet(t, val as string[], useUnmanagedNetwork.value),
-    cidrBlock: (val: unknown) => validators.cidrBlock(t, val as string, useUnmanagedNetwork.value),
+    region:                             (val: unknown) => validators.region(t, val as string),
+    vpc:                                (val: unknown) => validators.vpc(t, val as string, useUnmanagedNetwork.value),
+    subnet:                             (val: unknown) => validators.subnet(t, val as string[], useUnmanagedNetwork.value),
+    cidrBlock:                          (val: unknown) => validators.cidrBlock(t, val as string, useUnmanagedNetwork.value),
     additionalControlPlaneIngressRules: () => validators.validateIngressRulesCidr(t, additionalControlPlaneIngressRules.value),
     additionalNodeIngressRules:         () => validators.validateIngressRulesCidr(t, additionalNodeIngressRules.value),
   }
@@ -140,10 +140,9 @@ const hasIdentityRef = computed(() => {
   return !!(ref?.name && ref?.kind);
 });
 
-const isCreate = computed(()=>{
-  return mode.value === _CREATE
-})
-
+const isCreate = computed(() => {
+  return mode.value === _CREATE;
+});
 
 const regionOptions = computed(() => {
   if ( !regionInfo.value ) {
@@ -175,11 +174,11 @@ function initDefaultRegion() {
   }
 }
 
-async function getCloudCredential(){
+async function getCloudCredential() {
   if (!credentialId.value || !isCreate.value) {
     return;
   }
-  remove(value.value, 'spec.identityRef')
+  remove(value.value, 'spec.identityRef');
   showIdentityError.value = false;
 
   // Cancel any existing retry loop
@@ -188,9 +187,11 @@ async function getCloudCredential(){
     identityRetryTimer = null;
   }
 
-  try{
-    credential.value = await store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: credentialId.value, opt: {force: true} });
-    initDefaultRegion()
+  try {
+    credential.value = await store.dispatch('rancher/find', {
+      type: NORMAN.CLOUD_CREDENTIAL, id: credentialId.value, opt: { force: true }
+    });
+    initDefaultRegion();
 
     if (credential.value?.annotations?.[CAPA.IDENTITY_REF]) {
       setIdentityRef();
@@ -209,11 +210,14 @@ async function getCloudCredential(){
             clearInterval(identityRetryTimer);
             identityRetryTimer = null;
           }
+
           return;
         }
 
         try {
-          credential.value = await store.dispatch('rancher/find', { type: NORMAN.CLOUD_CREDENTIAL, id: savedCredentialId, opt: { force: true } });
+          credential.value = await store.dispatch('rancher/find', {
+            type: NORMAN.CLOUD_CREDENTIAL, id: savedCredentialId, opt: { force: true }
+          });
 
           if (credential.value?.annotations?.[CAPA.IDENTITY_REF]) {
             setIdentityRef();
@@ -239,8 +243,8 @@ async function getCloudCredential(){
         }
       }, 500);
     }
-  } catch (e){
-    credentialErrors.value.push(t('capa.errors.fetchingCloudCredential', { error: e }))
+  } catch (e) {
+    credentialErrors.value.push(t('capa.errors.fetchingCloudCredential', { error: e }));
   }
 }
 
@@ -264,6 +268,7 @@ async function getRegions() {
   if (!ec2Client.value || !region.value || !credentialId.value) {
     regionInfo.value = [];
     loadingRegions.value = false;
+
     return;
   }
 
@@ -283,6 +288,7 @@ async function getSshKeys() {
   if (!ec2Client.value || !region.value || !credentialId.value) {
     sshKeyInfo.value = [];
     loadingSshKeys.value = false;
+
     return;
   }
 
@@ -376,7 +382,6 @@ onMounted(async() => {
   }
 });
 
-
 watch([isFormValid, hasIdentityRef], ([formValid = true, hasIdentityRef]) => {
   emit('validationChanged', formValid && hasIdentityRef);
 });
@@ -391,47 +396,52 @@ watch(useUnmanagedNetwork, (neu, old) => {
   }
 });
 
-
 watch([
   () => region.value,
   () => credentialId.value,
 ], async([newRegion, newCredentialId], [oldRegion, oldCredentialId]) => {
-    if(mode.value === _VIEW) {
-      return
-    }
-    credentialErrors.value = []
-    if(newCredentialId && newCredentialId !== oldCredentialId){
-      // need to await cloud cred as subsequent functions depend on it
-      // the other get* functions are not awaited and loading props are used to display spinners in relevant inputs
-      await getCloudCredential();
+  if (mode.value === _VIEW) {
+    return;
+  }
+  credentialErrors.value = [];
+  if (newCredentialId && newCredentialId !== oldCredentialId) {
+    // need to await cloud cred as subsequent functions depend on it
+    // the other get* functions are not awaited and loading props are used to display spinners in relevant inputs
+    await getCloudCredential();
+  }
+
+  if (region.value && credentialId.value) {
+    ec2Client.value = await store.dispatch('aws/ec2', {
+      region:            region.value,
+      cloudCredentialId: credentialId.value
+    });
+
+    if (oldRegion && newRegion !== oldRegion && mode.value === _CREATE) {
+      vpcId.value = ''; // this will trigger removal of any vpc-dependent configuration
+      sshKeyName.value = '';
     }
 
-    if(region.value && credentialId.value){
-        ec2Client.value = await store.dispatch('aws/ec2', {
-          region:            region.value, 
-          cloudCredentialId: credentialId.value
-        });
-
-        if(oldRegion && newRegion !== oldRegion && mode.value === _CREATE){
-          vpcId.value = ''; // this will trigger removal of any vpc-dependent configuration
-          sshKeyName.value = ''
-        }
-
-        debouncedFetchAll(!oldRegion);
-    } else {
-      vpcInfo.value = []
-      sshKeyInfo.value = []
-      subnetInfo.value = []
-      regionInfo.value = []
-      securityGroupInfo.value = []
-    }
+    debouncedFetchAll(!oldRegion);
+  } else {
+    vpcInfo.value = [];
+    sshKeyInfo.value = [];
+    subnetInfo.value = [];
+    regionInfo.value = [];
+    securityGroupInfo.value = [];
+  }
 }, { immediate: true });
 
 </script>
 
 <template>
   <div class="mmb-6">
-    <Banner :label="e" :key="e" v-for="e in credentialErrors" color="error" class="m-0"/>
+    <Banner
+      v-for="e in credentialErrors"
+      :key="e"
+      :label="e"
+      color="error"
+      class="m-0"
+    />
     <Banner
       v-if="credentialId && showIdentityError"
       color="error"
@@ -531,3 +541,4 @@ watch([
     </RcSection>
   </div>
 </template>
+

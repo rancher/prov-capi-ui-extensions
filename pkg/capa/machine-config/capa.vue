@@ -7,6 +7,7 @@ import { useI18n } from '@shell/composables/useI18n';
 import { Banner } from '@components/Banner';
 import {
   MACHINE_CONFIG_DEFAULTS,
+  MARKET_TYPES,
   UBUNTU_LTS_AMI_NAME_PATTERNS
 } from './constants';
 import { stringify } from '@shell/utils/error';
@@ -80,6 +81,7 @@ const isNew = computed(() => {
   // Pool is new if it has no creation timestamp (not yet created in Kubernetes)
   return !value.value?.metadata?.creationTimestamp;
 });
+
 function setSpecAmiId(amiId: string | null) {
   const templateSpec = ensureTemplateSpec();
 
@@ -99,7 +101,7 @@ const spec: WritableComputedRef<Record<string, any>> = computed({
     const s = model.spec.template.spec;
 
     // Important: never replace the whole model in the getter. Replacing it
-    // causes v-model controls (e.g. publicIp checkbox) to snap back on render.
+    // causes v-model controls (e.g. publicIP checkbox) to snap back on render.
     if (isNew.value) {
       s.ami = s.ami || { ...MACHINE_CONFIG_DEFAULTS.ami };
       s.cloudInit = s.cloudInit || { ...MACHINE_CONFIG_DEFAULTS.cloudInit };
@@ -116,8 +118,8 @@ const spec: WritableComputedRef<Record<string, any>> = computed({
       if (!s.marketType) {
         s.marketType = MACHINE_CONFIG_DEFAULTS.marketType;
       }
-      if (s.publicIp === undefined) {
-        s.publicIp = MACHINE_CONFIG_DEFAULTS.publicIp;
+      if (s.publicIP === undefined) {
+        s.publicIP = MACHINE_CONFIG_DEFAULTS.publicIP;
       }
 
       s.rootVolume = s.rootVolume || {};
@@ -139,7 +141,11 @@ const spec: WritableComputedRef<Record<string, any>> = computed({
       if (!Array.isArray(s.additionalSecurityGroups)) {
         s.additionalSecurityGroups = [];
       }
-      s.spotMarketOptions = s.spotMarketOptions || {};
+      if (s.marketType === MARKET_TYPES.SPOT) {
+        s.spotMarketOptions = s.spotMarketOptions || {};
+      } else {
+        delete s.spotMarketOptions;
+      }
     } else {
       s.rootVolume = s.rootVolume || {};
       s.ami = s.ami || {};
@@ -151,7 +157,11 @@ const spec: WritableComputedRef<Record<string, any>> = computed({
       if (!Array.isArray(s.additionalSecurityGroups)) {
         s.additionalSecurityGroups = [];
       }
-      s.spotMarketOptions = s.spotMarketOptions || {};
+      if (s.marketType === MARKET_TYPES.SPOT) {
+        s.spotMarketOptions = s.spotMarketOptions || {};
+      } else {
+        delete s.spotMarketOptions;
+      }
     }
 
     return model.spec.template.spec;
@@ -170,32 +180,49 @@ watch(() => spec.value, () => {
 
 const instanceType = computed({
   get: () => spec.value.instanceType,
-  set: (val: string) => { spec.value.instanceType = val; }
+  set: (val: string) => {
+    spec.value.instanceType = val;
+  }
 });
 
 const sshKeyName = computed({
   get: () => spec.value.sshKeyName,
-  set: (val: string) => { spec.value.sshKeyName = val; }
+  set: (val: string) => {
+    spec.value.sshKeyName = val;
+  }
 });
 
 const subnetId = computed({
   get: () => spec.value.subnet?.id || null,
-  set: (val: string | null) => { spec.value.subnet = { ...(spec.value.subnet || {}), id: val }; }
+  set: (val: string | null) => {
+    if (!val) {
+      delete spec.value.subnet;
+
+      return;
+    }
+    spec.value.subnet = { ...(spec.value.subnet || {}), id: val };
+  }
 });
 
-const publicIp = computed({
-  get: () => !!spec.value.publicIp,
-  set: (val: boolean) => { spec.value.publicIp = val; }
+const publicIP = computed({
+  get: () => !!spec.value.publicIP,
+  set: (val: boolean) => {
+    spec.value.publicIP = val;
+  }
 });
 
 const amiId = computed({
   get: () => spec.value.ami?.id || '',
-  set: (val: string) => { setSpecAmiId(val); }
+  set: (val: string) => {
+    setSpecAmiId(val);
+  }
 });
 
 const iamInstanceProfile = computed({
   get: () => spec.value.iamInstanceProfile || '',
-  set: (val: string) => { spec.value.iamInstanceProfile = val; }
+  set: (val: string) => {
+    spec.value.iamInstanceProfile = val;
+  }
 });
 
 const instanceMetadataHttpTokens = computed({
@@ -210,27 +237,37 @@ const instanceMetadataHttpTokens = computed({
 
 const rootVolumeSize = computed({
   get: () => spec.value.rootVolume?.size,
-  set: (val: number) => { spec.value.rootVolume = { ...(spec.value.rootVolume || {}), size: val }; }
+  set: (val: number) => {
+    spec.value.rootVolume = { ...(spec.value.rootVolume || {}), size: val };
+  }
 });
 
 const rootVolumeType = computed({
   get: () => spec.value.rootVolume?.type,
-  set: (val: string) => { spec.value.rootVolume = { ...(spec.value.rootVolume || {}), type: val }; }
+  set: (val: string) => {
+    spec.value.rootVolume = { ...(spec.value.rootVolume || {}), type: val };
+  }
 });
 
 const rootVolumeEncrypted = computed({
   get: () => !!spec.value.rootVolume?.encrypted,
-  set: (val: boolean) => { spec.value.rootVolume = { ...(spec.value.rootVolume || {}), encrypted: val }; }
+  set: (val: boolean) => {
+    spec.value.rootVolume = { ...(spec.value.rootVolume || {}), encrypted: val };
+  }
 });
 
 const rootVolumeEncryptionKey = computed({
   get: () => spec.value.rootVolume?.encryptionKey || '',
-  set: (val: string) => { spec.value.rootVolume = { ...(spec.value.rootVolume || {}), encryptionKey: val }; }
+  set: (val: string) => {
+    spec.value.rootVolume = { ...(spec.value.rootVolume || {}), encryptionKey: val };
+  }
 });
 
 const nonRootVolumes = computed({
   get: () => spec.value.nonRootVolumes || [],
-  set: (val: Record<string, any>[]) => { spec.value.nonRootVolumes = val || []; }
+  set: (val: Record<string, any>[]) => {
+    spec.value.nonRootVolumes = val || [];
+  }
 });
 
 const cloudInitInsecureSkipSecretsManager = computed({
@@ -245,17 +282,33 @@ const cloudInitInsecureSkipSecretsManager = computed({
 
 const additionalSecurityGroups = computed({
   get: () => spec.value.additionalSecurityGroups || [],
-  set: (val: Array<{ id: string }>) => { spec.value.additionalSecurityGroups = val || []; }
+  set: (val: Array<{ id: string }>) => {
+    spec.value.additionalSecurityGroups = val || [];
+  }
 });
 
 const marketType = computed({
   get: () => spec.value.marketType || MACHINE_CONFIG_DEFAULTS.marketType,
-  set: (val: string) => { spec.value.marketType = val; }
+  set: (val: string) => {
+    spec.value.marketType = val;
+
+    if (val === MARKET_TYPES.SPOT) {
+      spec.value.spotMarketOptions = spec.value.spotMarketOptions || {};
+    } else {
+      delete spec.value.spotMarketOptions;
+    }
+  }
 });
 
 const spotMarketMaxPrice = computed({
-  get: () => spec.value.spotMarketOptions?.maxPrice || '',
+  get: () => spec.value.marketType === MARKET_TYPES.SPOT ? (spec.value.spotMarketOptions?.maxPrice || '') : '',
   set: (val: string | undefined) => {
+    if (spec.value.marketType !== MARKET_TYPES.SPOT) {
+      delete spec.value.spotMarketOptions;
+
+      return;
+    }
+
     const current = { ...(spec.value.spotMarketOptions || {}) };
 
     if (val === undefined || val === '') {
@@ -270,7 +323,9 @@ const spotMarketMaxPrice = computed({
 
 const additionalTags = computed({
   get: () => spec.value.additionalTags || {},
-  set: (val: Record<string, string>) => { spec.value.additionalTags = val || {}; }
+  set: (val: Record<string, string>) => {
+    spec.value.additionalTags = val || {};
+  }
 });
 
 const region = computed(() => infrastructureCluster.value?.spec?.region || null);
@@ -298,7 +353,7 @@ async function fetchLatestUbuntuAmi(): Promise<string | null> {
       cmd:    'describeImages',
       key:    'Images',
       opt:    {
-        Owners: ['099720109477'], // Canonical
+        Owners:  ['099720109477'], // Canonical
         Filters: [
           { Name: 'name', Values: [namePattern] },
           { Name: 'architecture', Values: ['x86_64'] },
@@ -320,11 +375,13 @@ async function fetchLatestUbuntuAmi(): Promise<string | null> {
 
   return null;
 }
+
 async function getSshKeys() {
   loadingSshKeys.value = true;
   if (!ec2Client.value || !region.value || !credentialId.value) {
     sshKeys.value = [];
     loadingSshKeys.value = false;
+
     return;
   }
 
@@ -344,6 +401,7 @@ async function getInstanceProfiles() {
   if (!iamClient.value || !region.value || !credentialId.value) {
     instanceProfiles.value = [];
     loadingInstanceProfiles.value = false;
+
     return;
   }
 
@@ -353,7 +411,7 @@ async function getInstanceProfiles() {
     instanceProfiles.value = profiles || [];
   } catch (e) {
     errors.value.push(t('capa.errors.fetchingInstanceProfiles', { error: e }));
-  }finally {
+  } finally {
     loadingInstanceProfiles.value = false;
   }
 }
@@ -363,6 +421,7 @@ async function getSubnets() {
   if (!ec2Client.value || !region.value || !credentialId.value) {
     subnets.value = [];
     loadingSubnets.value = false;
+
     return;
   }
 
@@ -382,6 +441,7 @@ async function getSecurityGroups() {
   if (!ec2Client.value || !region.value || !credentialId.value) {
     securityGroups.value = [];
     loadingSecurityGroups.value = false;
+
     return;
   }
 
@@ -394,18 +454,20 @@ async function getSecurityGroups() {
   } finally {
     loadingSecurityGroups.value = false;
   }
-} 
+}
 
 async function getKmsKeys() {
   loadingKmsKeys.value = true;
   if (!kmsClient.value || !region.value || !credentialId.value) {
     loadingKmsKeys.value = false;
     kmsKeys.value = [];
+
     return;
   }
 
   try {
     const keys = await store.dispatch('aws/depaginateList', { client: kmsClient.value, cmd: 'listKeys' });
+
     kmsKeys.value = keys || [];
   } catch (e) {
     errors.value.push(t('capa.errors.fetchingKmsKeys', { error: e }));
@@ -419,6 +481,7 @@ async function getInstanceTypes() {
   if (!ec2Client.value || !region.value || !credentialId.value) {
     instanceTypes.value = [];
     loadingInstanceTypes.value = false;
+
     return;
   }
 
@@ -434,98 +497,98 @@ async function getInstanceTypes() {
 }
 
 if (!spec.value.instanceMetadataOptions?.httpTokens) {
-    spec.value.instanceMetadataOptions = {
-     ...spec.value.instanceMetadataOptions,
+  spec.value.instanceMetadataOptions = {
+    ...spec.value.instanceMetadataOptions,
     httpTokens: MACHINE_CONFIG_DEFAULTS.instanceMetadataOptions.httpTokens,
   };
 }
 
 if (!Array.isArray(spec.value.nonRootVolumes)) {
-   spec.value.nonRootVolumes = [];
+  spec.value.nonRootVolumes = [];
 }
 
 const debouncedFetchAll = debounce(() => {
-
-    getSshKeys();
-    getInstanceProfiles();
+  getSshKeys();
+  getInstanceProfiles();
   getSubnets();
-    getSecurityGroups();
-    getKmsKeys();
-    getInstanceTypes();
-    fetchLatestUbuntuAmi().then((amiId) => {
-      if (!amiId) {
-        return;
-      }
+  getSecurityGroups();
+  getKmsKeys();
+  getInstanceTypes();
+  fetchLatestUbuntuAmi().then((amiId) => {
+    if (!amiId) {
+      return;
+    }
 
-      const currentAmi = spec.value?.ami?.id;
+    const currentAmi = spec.value?.ami?.id;
 
-      // Only auto-fill when the field is empty or still holds the previous
-      // auto-populated value (i.e. the user hasn't typed in a custom AMI).
-      if (!currentAmi || currentAmi === autoPopulatedAmiId.value) {
-        setSpecAmiId(amiId);
-        autoPopulatedAmiId.value = amiId;
-      }
-    }).catch((e) => {
-      errors.value.push(t('capa.errors.fetchingAmi', { error: e }));
-    });
-  }, 1);
+    // Only auto-fill when the field is empty or still holds the previous
+    // auto-populated value (i.e. the user hasn't typed in a custom AMI).
+    if (!currentAmi || currentAmi === autoPopulatedAmiId.value) {
+      setSpecAmiId(amiId);
+      autoPopulatedAmiId.value = amiId;
+    }
+  }).catch((e) => {
+    errors.value.push(t('capa.errors.fetchingAmi', { error: e }));
+  });
+}, 1);
+
 watch([
   () => region.value,
   () => credentialId.value,
 ], async([newRegion, newCredentialId], [oldRegion, oldCredentialId]) => {
-    errors.value = []
-    const credentialChanged = !!oldCredentialId && !!newCredentialId && newCredentialId !== oldCredentialId;
+  errors.value = [];
+  const credentialChanged = !!oldCredentialId && !!newCredentialId && newCredentialId !== oldCredentialId;
 
-    if(region.value && credentialId.value){
-        try {
-          ec2Client.value = await store.dispatch('aws/ec2', {
-            region:            region.value,
-            cloudCredentialId: credentialId.value
-          });
-        } catch (e) {
-          ec2Client.value = null;
-          errors.value.push(t('capa.errors.fetchingEc2Client', { error: e }));
-        }
-
-        try {
-          iamClient.value = await store.dispatch('aws/iam', {
-            region:            region.value,
-            cloudCredentialId: credentialId.value
-          });
-        } catch (e) {
-          iamClient.value = null;
-          errors.value.push(t('capa.errors.fetchingIamClient', { error: e }));
-        }
-
-        try {
-          kmsClient.value = await store.dispatch('aws/kms', {
-            region:            region.value,
-            cloudCredentialId: credentialId.value
-          });
-        } catch (e) {
-          kmsClient.value = null;
-          errors.value.push(t('capa.errors.fetchingKmsClient', { error: e }));
-        }
-
-        if(isNew.value && (oldRegion && newRegion !== oldRegion || credentialChanged)){
-          spec.value.subnet = { ...(spec.value.subnet || {}), id: null };
-          spec.value.sshKeyName = '';
-          spec.value.additionalSecurityGroups = [];
-          spec.value.rootVolume = { ...(spec.value.rootVolume || {}), encryptionKey: '' };
-          // Clear the AMI only when it hasn't been customized
-          if (spec.value.ami?.id && spec.value.ami.id === autoPopulatedAmiId.value) {
-            setSpecAmiId(null);
-          }
-        }
-
-        debouncedFetchAll();
-    } else {
-      subnets.value = []
-      sshKeys.value = []
-      securityGroups.value = []
-      instanceProfiles.value = []
-      kmsKeys.value = []
+  if (region.value && credentialId.value) {
+    try {
+      ec2Client.value = await store.dispatch('aws/ec2', {
+        region:            region.value,
+        cloudCredentialId: credentialId.value
+      });
+    } catch (e) {
+      ec2Client.value = null;
+      errors.value.push(t('capa.errors.fetchingEc2Client', { error: e }));
     }
+
+    try {
+      iamClient.value = await store.dispatch('aws/iam', {
+        region:            region.value,
+        cloudCredentialId: credentialId.value
+      });
+    } catch (e) {
+      iamClient.value = null;
+      errors.value.push(t('capa.errors.fetchingIamClient', { error: e }));
+    }
+
+    try {
+      kmsClient.value = await store.dispatch('aws/kms', {
+        region:            region.value,
+        cloudCredentialId: credentialId.value
+      });
+    } catch (e) {
+      kmsClient.value = null;
+      errors.value.push(t('capa.errors.fetchingKmsClient', { error: e }));
+    }
+
+    if (isNew.value && ((oldRegion && newRegion !== oldRegion) || credentialChanged)) {
+      spec.value.subnet = { ...(spec.value.subnet || {}), id: null };
+      spec.value.sshKeyName = '';
+      spec.value.additionalSecurityGroups = [];
+      spec.value.rootVolume = { ...(spec.value.rootVolume || {}), encryptionKey: '' };
+      // Clear the AMI only when it hasn't been customized
+      if (spec.value.ami?.id && spec.value.ami.id === autoPopulatedAmiId.value) {
+        setSpecAmiId(null);
+      }
+    }
+
+    debouncedFetchAll();
+  } else {
+    subnets.value = [];
+    sshKeys.value = [];
+    securityGroups.value = [];
+    instanceProfiles.value = [];
+    kmsKeys.value = [];
+  }
 }, { immediate: true });
 </script>
 
@@ -542,51 +605,50 @@ watch([
         />
       </div>
     </div>
-      <InstanceConfigSection
-        v-model:instance-type="instanceType"
-        v-model:ssh-key-name="sshKeyName"
-        v-model:subnet-id="subnetId"
-        v-model:public-ip="publicIp"
-        v-model:ami-id="amiId"
-        v-model:iam-instance-profile="iamInstanceProfile"
-        v-model:instance-metadata-http-tokens="instanceMetadataHttpTokens"
-        :instance-types="instanceTypes"
-        :subnets="subnets"
-        :instance-profiles="instanceProfiles"
-        :key-pairs="sshKeys"
-        :vpc-id="vpcId"
-        :cluster-subnet-ids="clusterSubnetIds"
-        :mode="mode"
-        :is-ami-auto-populated="!!autoPopulatedAmiId && spec.ami?.id === autoPopulatedAmiId"
-        :loading-ssh-keys="loadingSshKeys"
-        :loading-instance-profiles="loadingInstanceProfiles"
-        :loading-subnets="loadingSubnets"
-        :loading-instance-types="loadingInstanceTypes"
-        :auto-populated-ami-id="autoPopulatedAmiId"
-        @validationChanged="$emit('validationChanged', $event)"
-      />
-      <StorageSection
-        v-model:root-volume-size="rootVolumeSize"
-        v-model:root-volume-type="rootVolumeType"
-        v-model:root-volume-encrypted="rootVolumeEncrypted"
-        v-model:root-volume-encryption-key="rootVolumeEncryptionKey"
-        v-model:non-root-volumes="nonRootVolumes"
-        :mode="mode"
-        :kms-keys="kmsKeys"
-        :loading-kms-keys="loadingKmsKeys"
-      />
-      <AdvancedSection
-        v-model:cloud-init-insecure-skip-secrets-manager="cloudInitInsecureSkipSecretsManager"
-        v-model:additional-security-groups="additionalSecurityGroups"
-        v-model:market-type="marketType"
-        v-model:spot-market-max-price="spotMarketMaxPrice"
-        v-model:additional-tags="additionalTags"
-        :security-groups="securityGroups"
-        :loading-security-groups="loadingSecurityGroups"
-        :vpc-id="vpcId"
-        :mode="mode"
-      />
-
+    <InstanceConfigSection
+      v-model:instance-type="instanceType"
+      v-model:ssh-key-name="sshKeyName"
+      v-model:subnet-id="subnetId"
+      v-model:public-i-p="publicIP"
+      v-model:ami-id="amiId"
+      v-model:iam-instance-profile="iamInstanceProfile"
+      v-model:instance-metadata-http-tokens="instanceMetadataHttpTokens"
+      :instance-types="instanceTypes"
+      :subnets="subnets"
+      :instance-profiles="instanceProfiles"
+      :key-pairs="sshKeys"
+      :vpc-id="vpcId"
+      :cluster-subnet-ids="clusterSubnetIds"
+      :mode="mode"
+      :is-ami-auto-populated="!!autoPopulatedAmiId && spec.ami?.id === autoPopulatedAmiId"
+      :loading-ssh-keys="loadingSshKeys"
+      :loading-instance-profiles="loadingInstanceProfiles"
+      :loading-subnets="loadingSubnets"
+      :loading-instance-types="loadingInstanceTypes"
+      :auto-populated-ami-id="autoPopulatedAmiId"
+      @validationChanged="$emit('validationChanged', $event)"
+    />
+    <StorageSection
+      v-model:root-volume-size="rootVolumeSize"
+      v-model:root-volume-type="rootVolumeType"
+      v-model:root-volume-encrypted="rootVolumeEncrypted"
+      v-model:root-volume-encryption-key="rootVolumeEncryptionKey"
+      v-model:non-root-volumes="nonRootVolumes"
+      :mode="mode"
+      :kms-keys="kmsKeys"
+      :loading-kms-keys="loadingKmsKeys"
+    />
+    <AdvancedSection
+      v-model:cloud-init-insecure-skip-secrets-manager="cloudInitInsecureSkipSecretsManager"
+      v-model:additional-security-groups="additionalSecurityGroups"
+      v-model:market-type="marketType"
+      v-model:spot-market-max-price="spotMarketMaxPrice"
+      v-model:additional-tags="additionalTags"
+      :security-groups="securityGroups"
+      :loading-security-groups="loadingSecurityGroups"
+      :vpc-id="vpcId"
+      :mode="mode"
+    />
   </div>
 </template>
 

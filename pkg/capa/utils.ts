@@ -9,37 +9,36 @@ import {
 import * as AWS from '@shell/types/aws-sdk';
 import { CAPA } from './labels-annotations';
 
-const ADDITIONAL_MANIFEST = `additionalManifest: |-
-      apiVersion: helm.cattle.io/v1
-      kind: HelmChart
-      metadata:
-        name: aws-cloud-controller-manager
-        namespace: kube-system
-      spec:
-        chart: aws-cloud-controller-manager
-        repo: https://kubernetes.github.io/cloud-provider-aws
-        targetNamespace: kube-system
-        bootstrap: true
-        valuesContent: |-
-          hostNetworking: true
-          nodeSelector:
-            node-role.kubernetes.io/control-plane: "true"
-          args:
-            - --configure-cloud-routes=false
-            - --v=5
-            - --cloud-provider=aws
-          tolerations:
-                - key: node.cloudprovider.kubernetes.io/uninitialized
-                  value: "true"
-                  effect: NoSchedule
-                - key: node-role.kubernetes.io/master
-                  effect: NoSchedule
-                - key: node-role.kubernetes.io/control-plane
-                  effect: NoSchedule
-                - key: node-role.kubernetes.io/etcd
-                  effect: NoExecute`;
+const ADDITIONAL_MANIFEST = `apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: aws-cloud-controller-manager
+  namespace: kube-system
+spec:
+  chart: aws-cloud-controller-manager
+  repo: https://kubernetes.github.io/cloud-provider-aws
+  targetNamespace: kube-system
+  bootstrap: true
+  valuesContent: |-
+    hostNetworking: true
+    nodeSelector:
+      node-role.kubernetes.io/control-plane: "true"
+    args:
+      - --configure-cloud-routes=false
+      - --v=5
+      - --cloud-provider=aws
+    tolerations:
+      - key: node.cloudprovider.kubernetes.io/uninitialized
+        value: "true"
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/etcd
+        effect: NoExecute`;
 
-const MACHINE_SELECTOR_CONFIG = [
+const MACHINE_SELECTOR_CONFIG_RKE2 = [
   {
     config: {
       'disable-cloud-controller': 'true',
@@ -66,6 +65,62 @@ const MACHINE_SELECTOR_CONFIG = [
           }
         ]
       }
+    }
+  }
+];
+
+const MACHINE_SELECTOR_CONFIG_K3S = [
+  {
+    config: {
+      'disable-cloud-controller':    'true',
+      'kube-controller-manager-arg': [
+        'cloud-provider=external'
+      ],
+      'kubelet-arg': [
+        'cloud-provider=external'
+      ]
+    },
+    machineLabelSelector: {
+      matchExpressions: [
+        {
+          key:      'rke.cattle.io/control-plane-role',
+          operator: 'In',
+          values:   ['true']
+        }
+      ]
+    }
+  },
+  {
+    config: {
+      'disable-cloud-controller': 'true',
+      'kubelet-arg':              [
+        'cloud-provider=external'
+      ]
+    },
+    machineLabelSelector: {
+      matchExpressions: [
+        {
+          key:      'rke.cattle.io/etcd-role',
+          operator: 'In',
+          values:   ['true']
+        }
+      ]
+    }
+  },
+  {
+    config: {
+      'kubelet-arg': [
+        'cloud-provider=external'
+      ]
+    },
+    machineLabelSelector: {
+      matchExpressions: [
+        {
+          key:      'rke.cattle.io/worker-role',
+          operator: 'In',
+          values:   ['true']
+        }
+      ]
     }
   }
 ];
@@ -193,7 +248,10 @@ async function machineConfigWasModified(entry: PoolEntry, context: StoreContext)
     return true;
   }
 }
-export async function prepareProvCluster(cluster: any, context: StoreContext): Promise<void> {
+export async function prepareProvCluster(cluster: any): Promise<void> {
+  const isK3s = (cluster?.spec?.kubernetesVersion || '').includes('k3s');
+  const MACHINE_SELECTOR_CONFIG = isK3s ? MACHINE_SELECTOR_CONFIG_K3S : MACHINE_SELECTOR_CONFIG_RKE2;
+
   if (!cluster?.spec?.rkeConfig?.additionalManifest) {
     set(cluster, 'spec.rkeConfig.additionalManifest', ADDITIONAL_MANIFEST);
   }
@@ -213,13 +271,16 @@ export async function prepareProvCluster(cluster: any, context: StoreContext): P
   }
 }
 
-export function provisioningClusterValidation(cluster: any, context: StoreContext): void {
+export function provisioningClusterValidation(cluster: any): void {
+  const isK3s = (cluster?.spec?.kubernetesVersion || '').includes('k3s');
+  const MACHINE_SELECTOR_CONFIG = isK3s ? MACHINE_SELECTOR_CONFIG_K3S : MACHINE_SELECTOR_CONFIG_RKE2;
+
   if (!cluster?.spec?.rkeConfig?.additionalManifest) {
-    throw createDoNotLogError(formatErrorMessage(context, 'capa.errors.missingAdditionalManifest'));
+    throw createDoNotLogError('capa.errors.missingAdditionalManifest');
   }
 
   if (cluster.agentConfig?.['cloud-provider-name'] !== 'external') {
-    throw createDoNotLogError(formatErrorMessage(context, 'capa.errors.invalidCloudProviderName'));
+    throw createDoNotLogError('capa.errors.invalidCloudProviderName');
   }
 
   const selectorConfig: any[] = cluster?.spec?.rkeConfig?.machineSelectorConfig || [];
@@ -227,7 +288,7 @@ export function provisioningClusterValidation(cluster: any, context: StoreContex
   );
 
   if (!allPresent) {
-    throw createDoNotLogError(formatErrorMessage(context, 'capa.errors.missingMachineSelectorConfig'));
+    throw createDoNotLogError('capa.errors.missingMachineSelectorConfig');
   }
 }
 
@@ -280,6 +341,7 @@ export async function initInfrastructureCluster(value: ClusterValue, clusterSche
     if (config) {
       config.spec = removeEmptyFields(config.spec) || {};
     }
+
     return config || {};
   }
 }

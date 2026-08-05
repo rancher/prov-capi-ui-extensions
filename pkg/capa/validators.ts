@@ -60,4 +60,6 @@ const region = (t: Translator, val: string): string | undefined => {
   return val && val !== '' ? undefined : t('capa.errors.regionRequired');
 };
 
-export { validateIngressRulesCidr, vpc, subnet, cidrBlock, ipv4CidrBlocks, ipv6CidrBlocks, region };
+export {
+  validateIngressRulesCidr, vpc, subnet, cidrBlock, ipv4CidrBlocks, ipv6CidrBlocks, region
+};

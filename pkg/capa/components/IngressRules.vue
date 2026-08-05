@@ -186,7 +186,7 @@ function allowCidr(rule: IngressRule) {
 
 function allowSecurityGroups(rule: IngressRule) {
   if (rule.natGatewaysIPsSource) return false;
-  const { cidrBlocks = [], sourceSecurityGroupIDs = [], ipv6CidrBlocks=[] } = rule;
+  const { cidrBlocks = [], sourceSecurityGroupIDs = [], ipv6CidrBlocks = [] } = rule;
 
   return sourceSecurityGroupIDs.length || (!!vpcId.value && !cidrBlocks.length && !ipv6CidrBlocks.length);
 }
@@ -199,7 +199,9 @@ function allowSecurityGroupRoles(rule: IngressRule) {
 }
 
 function allowNatGatewaysIPsSource(rule: IngressRule) {
-  const { cidrBlocks = [], sourceSecurityGroupIDs = [], sourceSecurityGroupRoles = [], ipv6CidrBlocks = [] } = rule;
+  const {
+    cidrBlocks = [], sourceSecurityGroupIDs = [], sourceSecurityGroupRoles = [], ipv6CidrBlocks = []
+  } = rule;
 
   return !cidrBlocks.length && !ipv6CidrBlocks.length && !sourceSecurityGroupIDs.length && !sourceSecurityGroupRoles.length;
 }
