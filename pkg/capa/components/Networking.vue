@@ -366,8 +366,8 @@ watch(provClusterCNI, (newCni = '', oldCni = '') => {
   >
     <Banner
       color="warning"
-      @click="goToBasicsCniSelect"
       class="m-0"
+      @click="goToBasicsCniSelect"
     >
       <span v-clean-html="t('capa.clusterConfig.network.cniProviderBanner', { cni: provClusterCNI }, true)" />
     </Banner>

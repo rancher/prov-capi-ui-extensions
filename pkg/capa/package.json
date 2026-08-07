@@ -3,12 +3,14 @@
   "description": "SUSE UI Extension to support Rancher v2 provisioning via CAPI CAPA",
   "version": "0.0.0-rc6",
   "private": false,
+  "icon": "https://raw.githubusercontent.com/rancher/prov-capi-ui-extensions/a8e544492e6ca5b00aa4f019062e4503cf909c3c/pkg/capa/assets/amazoncapa.svg",
   "rancher": {
     "annotations": {
       "catalog.cattle.io/display-name": "SUSE CAPI CAPA UI",
       "catalog.cattle.io/rancher-version": ">= 2.15.0",
       "catalog.cattle.io/ui-extensions-version": ">= 3.0.0 < 4.0.0",
-      "catalog.cattle.io/experimental": "true"
+      "catalog.cattle.io/experimental": "true",
+      "catalog.cattle.io/prime-only": "true"
     }
   },
   "scripts": {},

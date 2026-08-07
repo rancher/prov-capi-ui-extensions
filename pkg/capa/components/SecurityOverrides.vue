@@ -45,7 +45,7 @@ let updatingFromProp = false;
 
 const securityGroupOptions = computed(() => {
   if (!vpcId.value) {
-    return []
+    return [];
   }
 
   return securityGroupInfo.value.reduce((opts, sg) => {

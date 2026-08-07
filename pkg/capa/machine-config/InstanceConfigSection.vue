@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from 'vue';
+import { computed } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
 import { RcSection } from '@components/RcSection';
@@ -15,11 +15,10 @@ const SUBNET_NONE = '__none__';
 defineOptions({ name: 'InstanceConfigSection' });
 
 const emit = defineEmits([
-  'validationChanged',
   'update:instanceType',
   'update:sshKeyName',
   'update:subnetId',
-  'update:publicIp',
+  'update:publicIP',
   'update:amiId',
   'update:iamInstanceProfile',
   'update:instanceMetadataHttpTokens',
@@ -29,7 +28,7 @@ interface Props {
   instanceType?: string;
   sshKeyName?: string;
   subnetId?: string | null;
-  publicIp?: boolean;
+  publicIP?: boolean;
   amiId?: string | null;
   iamInstanceProfile?: string;
   instanceMetadataHttpTokens?: string;
@@ -52,27 +51,27 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  instanceType:     MACHINE_CONFIG_DEFAULTS.instanceType,
-  sshKeyName:       MACHINE_CONFIG_DEFAULTS.sshKeyName,
-  subnetId:         null,
-  publicIp:         MACHINE_CONFIG_DEFAULTS.publicIp,
-  amiId:            '',
-  iamInstanceProfile: MACHINE_CONFIG_DEFAULTS.iamInstanceProfile,
+  instanceType:               MACHINE_CONFIG_DEFAULTS.instanceType,
+  sshKeyName:                 MACHINE_CONFIG_DEFAULTS.sshKeyName,
+  subnetId:                   null,
+  publicIP:                   MACHINE_CONFIG_DEFAULTS.publicIP,
+  amiId:                      '',
+  iamInstanceProfile:         MACHINE_CONFIG_DEFAULTS.iamInstanceProfile,
   instanceMetadataHttpTokens: MACHINE_CONFIG_DEFAULTS.instanceMetadataOptions.httpTokens,
-  instanceTypes:    () => [],
-  subnets:          () => [],
-  instanceProfiles: () => [],
-  keyPairs:         () => [],
-  autoPopulatedAmiId: null,
-  vpcId:            '',
-  clusterSubnetIds: () => [],
-  mode:             _CREATE,
-  loadingSshKeys:   false,
-  loadingInstanceProfiles: false,
-  loadingSubnets:   false,
-  loadingSecurityGroups: false,
-  loadingInstanceTypes: false,
-  isAmiAutoPopulated: false,
+  instanceTypes:              () => [],
+  subnets:                    () => [],
+  instanceProfiles:           () => [],
+  keyPairs:                   () => [],
+  autoPopulatedAmiId:         null,
+  vpcId:                      '',
+  clusterSubnetIds:           () => [],
+  mode:                       _CREATE,
+  loadingSshKeys:             false,
+  loadingInstanceProfiles:    false,
+  loadingSubnets:             false,
+  loadingSecurityGroups:      false,
+  loadingInstanceTypes:       false,
+  isAmiAutoPopulated:         false,
 });
 
 const store = useStore();
@@ -88,9 +87,9 @@ const modelSshKeyName = computed({
   set: (val: string) => emit('update:sshKeyName', val),
 });
 
-const modelPublicIp = computed({
-  get: () => props.publicIp ?? MACHINE_CONFIG_DEFAULTS.publicIp,
-  set: (val: boolean) => emit('update:publicIp', val),
+const modelPublicIP = computed({
+  get: () => props.publicIP ?? MACHINE_CONFIG_DEFAULTS.publicIP,
+  set: (val: boolean) => emit('update:publicIP', val),
 });
 
 const modelIamInstanceProfile = computed({
@@ -187,20 +186,6 @@ const sshKeyOptions = computed(() => {
   return [noneOption, ...keys];
 });
 
-const selectedSubnetNotInCluster = computed(() => {
-  const subnetId = props.subnetId;
-
-  if ( !subnetId ) {
-    return false;
-  }
-
-  return !(props.clusterSubnetIds || []).includes(subnetId);
-});
-
-const subnetPublicIpError = computed(() => {
-  return selectedSubnetNotInCluster.value && !!props.publicIp;
-});
-
 const amiDisplayId = computed({
   get() {
     const amiId = props.amiId || '';
@@ -220,9 +205,6 @@ const amiPlaceholder = computed(() => {
   return props.autoPopulatedAmiId || '';
 });
 
-watch(subnetPublicIpError, () => {
-  emit('validationChanged', !subnetPublicIpError.value);
-}, { immediate: true });
 </script>
 
 <template>
@@ -251,7 +233,6 @@ watch(subnetPublicIpError, () => {
         :mode="mode"
         label-key="capa.machineConfig.instanceConfiguration.sshKeyName.label"
         :sub-label="t('capa.machineConfig.instanceConfiguration.sshKeyName.description')"
-        required
         :loading="loadingSshKeys"
       />
     </div>
@@ -272,13 +253,14 @@ watch(subnetPublicIpError, () => {
         :mode="mode"
         :loading="loadingInstanceProfiles"
         label-key="capa.machineConfig.instanceConfiguration.advanced.iamInstanceProfileName.label"
+        required
       />
     </div>
     <Checkbox
-      v-model:value="modelPublicIp"
+      v-model:value="modelPublicIP"
       :mode="mode"
-      label-key="capa.machineConfig.instanceConfiguration.publicIp.label"
-      :tooltip="t('capa.machineConfig.instanceConfiguration.publicIp.tooltip')"
+      label-key="capa.machineConfig.instanceConfiguration.publicIP.label"
+      :tooltip="t('capa.machineConfig.instanceConfiguration.publicIP.tooltip')"
     />
 
     <RcSection

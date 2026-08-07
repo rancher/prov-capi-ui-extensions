@@ -25,6 +25,12 @@ export const HTTP_TOKENS_VALUES = {
   OPTIONAL: 'optional',
 } as const;
 
+export const MARKET_TYPES = {
+  ON_DEMAND: 'OnDemand',
+  SPOT:      'Spot',
+  BLOCK:     'CapacityBlock',
+} as const;
+
 export const SECURITY_GROUP_OPTIONS = [
   { labelKey: 'capa.machineConfig.advanced.securityGroup.options.standard', value: 'merge' },
   { labelKey: 'capa.machineConfig.advanced.securityGroup.options.existing', value: 'replace' },
@@ -49,8 +55,8 @@ export const MACHINE_CONFIG_DEFAULTS = {
   iamInstanceProfile:      '',
   instanceMetadataOptions: { httpTokens: HTTP_TOKENS_VALUES.REQUIRED },
   instanceType:            't3.medium',
-  marketType:              'OnDemand',
-  publicIp:                false,
+  marketType:              MARKET_TYPES.ON_DEMAND,
+  publicIP:                false,
   rootVolume:              {
     encrypted: false,
     size:      32,

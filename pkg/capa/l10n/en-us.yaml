@@ -107,7 +107,7 @@ capa:
       subnet:
         label: Subnet
         none: 'None (use a cluster-managed subnet)'
-      publicIp:
+      publicIP:
         label: Assign a public IP
         tooltip: 'Assign a public IP address to nodes in this pool. A public IP can only be used with subnets defined on the infrastructure cluster.'
       advanced:
@@ -181,8 +181,8 @@ capa:
     removingOldMachineConfig: "Error removing old machine config: {error}"
     savingMachineConfig: "Error saving machine config: {error}"
     savingInfrastructureCluster: "Error saving infrastructure cluster: {error}"
-    missingAdditionalManifest: RKE Config is missing additional manifest
-    missingMachineSelectorConfig: RKE Config is missing required machine selector config entries
+    missingAdditionalManifest: 'RKE Config is missing required additional manifest. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/capi-infrastructure-providers" target="_blank" rel="noopener noreferrer nofollow">the documentation<icon class="icon icon-external-link icon-sm"/></a> for more information.'
+    missingMachineSelectorConfig: 'RKE Config is missing required machine selector config entries. See <a href="https://ranchermanager.docs.rancher.com/how-to-guides/advanced-user-guides/capi-infrastructure-providers" target="_blank" rel="noopener noreferrer nofollow">the documentation<icon class="icon icon-external-link icon-sm"/></a> for more information.'
     invalidCloudProviderName: Cloud provider must be set to External when using CAPA
     regionRequired: Region is required.
     vpcRequired: VPC is required

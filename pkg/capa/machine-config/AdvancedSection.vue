@@ -8,7 +8,7 @@ import { RadioGroup } from '@components/Form/Radio';
 import LabeledSelect from '@shell/components/form/LabeledSelect';
 import KeyValue from '@shell/components/form/KeyValue';
 import UnitInput from '@shell/components/form/UnitInput';
-import { MACHINE_CONFIG_DEFAULTS } from './constants';
+import { MACHINE_CONFIG_DEFAULTS, MARKET_TYPES } from './constants';
 import { _CREATE } from '@shell/config/query-params';
 
 defineOptions({ name: 'AdvancedSection' });
@@ -35,14 +35,14 @@ const emit = defineEmits([
 
 const props = withDefaults(defineProps<Props>(), {
   cloudInitInsecureSkipSecretsManager: MACHINE_CONFIG_DEFAULTS.cloudInit.insecureSkipSecretsManager,
-  additionalSecurityGroups: () => [],
-  marketType:             MACHINE_CONFIG_DEFAULTS.marketType,
-  spotMarketMaxPrice:     '',
-  additionalTags:         () => ({}),
-  mode:                  _CREATE,
-  securityGroups:        () => [],
-  vpcId:                 '',
-  loadingSecurityGroups: false,
+  additionalSecurityGroups:            () => [],
+  marketType:                          MACHINE_CONFIG_DEFAULTS.marketType,
+  spotMarketMaxPrice:                  '',
+  additionalTags:                      () => ({}),
+  mode:                                _CREATE,
+  securityGroups:                      () => [],
+  vpcId:                               '',
+  loadingSecurityGroups:               false,
 });
 
 const store = useStore();
@@ -59,15 +59,13 @@ const modelMarketType = computed({
 });
 
 watch(modelMarketType, (val) => {
-  if (val !== 'Spot') {
+  if (val !== MARKET_TYPES.SPOT) {
     emit('update:spotMarketMaxPrice', undefined);
   }
 });
 
 const existingSecurityGroupOptions = computed(() => {
-  const groups = props.vpcId
-    ? (props.securityGroups || []).filter((sg: Record<string, any>) => sg.VpcId === props.vpcId)
-    : (props.securityGroups || []);
+  const groups = props.vpcId ? (props.securityGroups || []).filter((sg: Record<string, any>) => sg.VpcId === props.vpcId) : (props.securityGroups || []);
 
   return groups
     .map((sg: Record<string, any>) => ({
@@ -92,6 +90,7 @@ const spotMaxPrice = computed({
   },
   set(maxPrice: string | number | null | undefined) {
     const normalized = (maxPrice === null || maxPrice === undefined || maxPrice === '') ? undefined : String(maxPrice);
+
     emit('update:spotMarketMaxPrice', normalized);
   },
 });
@@ -148,11 +147,11 @@ const tags = computed({
         :mode="mode"
         :options="[
           { label: t('capa.machineConfig.advanced.marketType.options.onDemand'), value: MACHINE_CONFIG_DEFAULTS.marketType },
-          { label: t('capa.machineConfig.advanced.marketType.options.spot'), value: 'Spot' },
-          { label: t('capa.machineConfig.advanced.marketType.options.block'), value: 'CapacityBlock' },
+          { label: t('capa.machineConfig.advanced.marketType.options.spot'), value: MARKET_TYPES.SPOT },
+          { label: t('capa.machineConfig.advanced.marketType.options.block'), value: MARKET_TYPES.BLOCK },
         ]"
       />
-      <div v-if="modelMarketType === 'Spot'">
+      <div v-if="modelMarketType === MARKET_TYPES.SPOT">
         <div class="span-4">
           <UnitInput
             v-model:value="spotMaxPrice"

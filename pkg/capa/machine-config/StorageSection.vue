@@ -34,15 +34,15 @@ const emit = defineEmits([
 ]);
 
 const props = withDefaults(defineProps<Props>(), {
-  rootVolumeSize:        MACHINE_CONFIG_DEFAULTS.rootVolume.size,
-  rootVolumeType:        MACHINE_CONFIG_DEFAULTS.rootVolume.type,
-  rootVolumeEncrypted:   MACHINE_CONFIG_DEFAULTS.rootVolume.encrypted,
+  rootVolumeSize:          MACHINE_CONFIG_DEFAULTS.rootVolume.size,
+  rootVolumeType:          MACHINE_CONFIG_DEFAULTS.rootVolume.type,
+  rootVolumeEncrypted:     MACHINE_CONFIG_DEFAULTS.rootVolume.encrypted,
   rootVolumeEncryptionKey: null,
-  nonRootVolumes:        () => [],
-  rootVolumeTypeOptions: () => VOLUME_TYPE_OPTIONS,
-  mode:                  _CREATE,
-  loadingKmsKeys:        false,
-  kmsKeys:               () => [],
+  nonRootVolumes:          () => [],
+  rootVolumeTypeOptions:   () => VOLUME_TYPE_OPTIONS,
+  mode:                    _CREATE,
+  loadingKmsKeys:          false,
+  kmsKeys:                 () => [],
 });
 
 const store = useStore();
@@ -117,9 +117,11 @@ const additionalVolumeTypeOptions = computed(() => VOLUME_TYPE_OPTIONS);
       :mode="mode"
       :label="t('capa.machineConfig.storage.rootVolume.encrypted.label')"
     />
-    <div class="span-8">
+    <div
+      v-if="modelRootVolumeEncrypted"
+      class="span-8"
+    >
       <LabeledSelect
-        v-if="modelRootVolumeEncrypted"
         v-model:value="modelRootVolumeEncryptionKey"
         :options="kmsKeyOptions"
         label-key="capa.machineConfig.storage.rootVolume.encryptionKey.label"

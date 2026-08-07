@@ -126,6 +126,14 @@ export interface InfrastructureMachineResource {
   remove?: () => Promise<void>;
 }
 
+export interface MachinePool {
+  name: string;
+  machineConfigRef: {
+    name?: string;
+  };
+  [key: string]: unknown;
+}
+
 export interface RkeConfig {
   infrastructureRef?: InfrastructureRef;
   additionalManifest?: string;
@@ -138,14 +146,6 @@ export interface ClusterValue {
   spec: {
     rkeConfig?: RkeConfig;
   };
-}
-
-export interface MachinePool {
-  name: string;
-  machineConfigRef: {
-    name?: string;
-  };
-  [key: string]: unknown;
 }
 
 export interface PoolEntry {
