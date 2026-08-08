@@ -13,6 +13,8 @@ import { _CREATE } from '@shell/config/query-params';
 
 defineOptions({ name: 'StorageSection' });
 
+type Validator = (val: unknown) => string | undefined;
+
 interface Props {
   rootVolumeSize?: number;
   rootVolumeType?: string;
@@ -23,6 +25,7 @@ interface Props {
   mode?: string;
   loadingKmsKeys?: boolean;
   kmsKeys?: Record<string, any>[];
+  rules?: Record<string, Validator[]>;
 }
 
 const emit = defineEmits([
@@ -43,6 +46,7 @@ const props = withDefaults(defineProps<Props>(), {
   mode:                    _CREATE,
   loadingKmsKeys:          false,
   kmsKeys:                 () => [],
+  rules:                   () => ({}),
 });
 
 const store = useStore();
@@ -94,6 +98,8 @@ const additionalVolumeTypeOptions = computed(() => VOLUME_TYPE_OPTIONS);
       <div class="span-4 mmr-4">
         <UnitInput
           v-model:value="modelRootVolumeSize"
+          name="rootVolumeSize"
+          :rules="rules.rootVolumeSize"
           label-key="capa.machineConfig.storage.rootVolume.size.label"
           suffix="GiB"
           class="mmr-4"
@@ -104,6 +110,8 @@ const additionalVolumeTypeOptions = computed(() => VOLUME_TYPE_OPTIONS);
       <div class="span-4">
         <LabeledSelect
           v-model:value="modelRootVolumeType"
+          name="rootVolumeType"
+          :rules="rules.rootVolumeType"
           :options="rootVolumeTypeOptions"
           label-key="capa.machineConfig.storage.rootVolume.type.label"
           required
@@ -123,6 +131,8 @@ const additionalVolumeTypeOptions = computed(() => VOLUME_TYPE_OPTIONS);
     >
       <LabeledSelect
         v-model:value="modelRootVolumeEncryptionKey"
+        name="rootVolumeEncryptionKey"
+        :rules="rules.rootVolumeEncryptionKey"
         :options="kmsKeyOptions"
         label-key="capa.machineConfig.storage.rootVolume.encryptionKey.label"
         placeholder-key="capa.machineConfig.storage.rootVolume.encryptionKey.placeholder"
