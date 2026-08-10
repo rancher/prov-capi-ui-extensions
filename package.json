@@ -1,12 +1,12 @@
 {
   "name": "prov-capi-ui-extensions",
-  "version": "0.0.0-rc6",
+  "version": "0.0.1-rc1",
   "private": false,
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "@rancher/shell": "v3.0.12-rc.6",
+    "@rancher/shell": "v3.0.13",
     "ipaddr.js": "2.4.0"
   },
   "devDependencies": {
