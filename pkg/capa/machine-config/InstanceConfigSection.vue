@@ -12,6 +12,8 @@ import { _CREATE } from '@shell/config/query-params';
 
 const SUBNET_NONE = '__none__';
 
+type Validator = (val: unknown) => string | undefined;
+
 defineOptions({ name: 'InstanceConfigSection' });
 
 const emit = defineEmits([
@@ -48,6 +50,7 @@ interface Props {
   loadingSecurityGroups?: boolean;
   loadingInstanceTypes?: boolean;
   isAmiAutoPopulated?: boolean;
+  rules?: Record<string, Validator[]>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -72,6 +75,7 @@ const props = withDefaults(defineProps<Props>(), {
   loadingSecurityGroups:      false,
   loadingInstanceTypes:       false,
   isAmiAutoPopulated:         false,
+  rules:                      () => ({}),
 });
 
 const store = useStore();
@@ -239,6 +243,8 @@ const amiPlaceholder = computed(() => {
     <div class="span-8">
       <LabeledInput
         v-model:value="amiDisplayId"
+        name="amiId"
+        :rules="rules.amiId"
         label-key="capa.machineConfig.instanceConfiguration.advanced.machineImage.label"
         :placeholder="amiPlaceholder"
         :mode="mode"
@@ -248,6 +254,8 @@ const amiPlaceholder = computed(() => {
     <div class="span-8">
       <LabeledSelect
         v-model:value="modelIamInstanceProfile"
+        name="iamInstanceProfile"
+        :rules="rules.iamInstanceProfile"
         :options="instanceProfileOptions"
         :taggable="true"
         :mode="mode"

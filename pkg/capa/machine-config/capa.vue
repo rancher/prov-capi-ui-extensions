@@ -4,6 +4,7 @@ import {
 } from 'vue';
 import { useStore } from 'vuex';
 import { useI18n } from '@shell/composables/useI18n';
+import { useFormValidation } from '@shell/composables/useFormValidation';
 import { Banner } from '@components/Banner';
 import {
   MACHINE_CONFIG_DEFAULTS,
@@ -262,6 +263,38 @@ const rootVolumeEncryptionKey = computed({
     spec.value.rootVolume = { ...(spec.value.rootVolume || {}), encryptionKey: val };
   }
 });
+
+const { getRules, isFormValid } = useFormValidation(
+  t,
+  [
+    {
+      path:           'amiId',
+      rules:          ['required'],
+      translationKey: 'capa.machineConfig.instanceConfiguration.advanced.machineImage.label',
+    },
+    {
+      path:           'iamInstanceProfile',
+      rules:          ['required'],
+      translationKey: 'capa.machineConfig.instanceConfiguration.advanced.iamInstanceProfileName.label',
+    },
+    {
+      path:           'rootVolumeSize',
+      rules:          ['required'],
+      translationKey: 'capa.machineConfig.storage.rootVolume.size.label',
+    },
+    {
+      path:           'rootVolumeType',
+      rules:          ['required'],
+      translationKey: 'capa.machineConfig.storage.rootVolume.type.label',
+    },
+    { path: 'rootVolumeEncryptionKey', rules: ['rootVolumeEncryptionKey'] },
+  ],
+  { rootVolumeEncryptionKey: (val: unknown) => (rootVolumeEncrypted.value && !val) ? t('validation.required', { key: t('capa.machineConfig.storage.rootVolume.encryptionKey.label') }) : undefined }
+);
+
+watch(isFormValid, (valid) => {
+  emit('validationChanged', valid);
+}, { immediate: true });
 
 const nonRootVolumes = computed({
   get: () => spec.value.nonRootVolumes || [],
@@ -613,6 +646,7 @@ watch([
       v-model:ami-id="amiId"
       v-model:iam-instance-profile="iamInstanceProfile"
       v-model:instance-metadata-http-tokens="instanceMetadataHttpTokens"
+      :rules="{ amiId: getRules('amiId'), iamInstanceProfile: getRules('iamInstanceProfile') }"
       :instance-types="instanceTypes"
       :subnets="subnets"
       :instance-profiles="instanceProfiles"
@@ -633,6 +667,7 @@ watch([
       v-model:root-volume-encrypted="rootVolumeEncrypted"
       v-model:root-volume-encryption-key="rootVolumeEncryptionKey"
       v-model:non-root-volumes="nonRootVolumes"
+      :rules="{ rootVolumeSize: getRules('rootVolumeSize'), rootVolumeType: getRules('rootVolumeType'), rootVolumeEncryptionKey: getRules('rootVolumeEncryptionKey') }"
       :mode="mode"
       :kms-keys="kmsKeys"
       :loading-kms-keys="loadingKmsKeys"
