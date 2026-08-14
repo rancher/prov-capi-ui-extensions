@@ -626,7 +626,7 @@ watch([
 </script>
 
 <template>
-  <div>
+  <div class="machine-config-capa">
     <div v-if="errors?.length">
       <div
         v-for="(err, idx) in errors"
@@ -685,4 +685,12 @@ watch([
     />
   </div>
 </template>
+
+<style scoped lang="scss">
+.machine-config-capa {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+</style>
 

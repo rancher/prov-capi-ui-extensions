@@ -147,6 +147,7 @@ const additionalVolumeTypeOptions = computed(() => VOLUME_TYPE_OPTIONS);
       mode="with-header"
       type="secondary"
       :expanded="false"
+      class="mmt-2"
     >
       <ArrayList
         v-model:value="modelNonRootVolumes"
