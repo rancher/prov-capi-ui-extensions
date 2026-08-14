@@ -304,5 +304,5 @@ const amiPlaceholder = computed(() => {
         </p>
       </div>
     </RcSection>
-    </RcSection>
+  </RcSection>
 </template>
