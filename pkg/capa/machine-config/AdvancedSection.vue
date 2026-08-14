@@ -170,6 +170,7 @@ const tags = computed({
       :expandable="true"
       mode="with-header"
       type="secondary"
+      class="mmt-2"
     >
       <p>{{ t('capa.machineConfig.advanced.tags.description') }}</p>
       <KeyValue

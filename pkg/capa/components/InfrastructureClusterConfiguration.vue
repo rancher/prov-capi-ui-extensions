@@ -434,7 +434,7 @@ watch([
 </script>
 
 <template>
-  <div class="mmb-6">
+  <div class="infrastructure-cluster-configuration mmb-6">
     <Banner
       v-for="e in credentialErrors"
       :key="e"
@@ -541,4 +541,12 @@ watch([
     </RcSection>
   </div>
 </template>
+
+<style scoped lang="scss">
+.infrastructure-cluster-configuration {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+</style>
 

@@ -220,11 +220,10 @@ function validateIpv6CidrString(cidrBlockString = '') {
 </script>
 
 <template>
-  <div>
+  <div class="ingress-rules">
     <RcSection
       v-for="(rule, index) in localValue"
       :key="index"
-      class="mmb-6"
       type="secondary"
       mode="with-header"
       :expandable="false"
@@ -404,6 +403,12 @@ function validateIpv6CidrString(cidrBlockString = '') {
 </template>
 
 <style scoped lang="scss">
+.ingress-rules {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-md);
+}
+
 .remove-button {
   display: flex;
   justify-content: end;
@@ -413,7 +418,7 @@ function validateIpv6CidrString(cidrBlockString = '') {
 .rule-row {
   display: flex;
   flex-direction: row;
-  gap: 16px;
+  gap: var(--gap-md);
 }
 
 .short-col {

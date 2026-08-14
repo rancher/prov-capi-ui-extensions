@@ -277,6 +277,7 @@ const amiPlaceholder = computed(() => {
       mode="with-header"
       type="secondary"
       :expanded="false"
+      class="mmt-2"
     >
       <div class="span-8">
         <LabeledSelect
