@@ -1,6 +1,6 @@
 {
   "name": "prov-capi-ui-extensions",
-  "version": "0.0.1-rc1",
+  "version": "0.0.1-rc2",
   "private": false,
   "engines": {
     "node": ">=24"
