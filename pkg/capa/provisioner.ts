@@ -25,7 +25,7 @@ export class CAPAProvisioner implements IClusterProvisioner {
   constructor(private context: ClusterProvisionerContext) {
     context.dispatch('plugins/mapDriver', { name: this.id, to: 'aws' }, { root: true });
     // ensure capi providers are loaded so the hidden getter works (controlling the option in the cluster creation type selection screen)
-    context.dispatch('management/findAll', { type: CAPI.CAPI_PROVIDER }, { root: true });
+    context.dispatch('management/findAll', { type: CAPI.CAPI_PROVIDER }, { root: true }).catch(() => {});
   }
 
   get id(): string {
