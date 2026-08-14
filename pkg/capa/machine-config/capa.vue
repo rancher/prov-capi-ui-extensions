@@ -292,7 +292,29 @@ const { getRules, isFormValid } = useFormValidation(
   { rootVolumeEncryptionKey: (val: unknown) => (rootVolumeEncrypted.value && !val) ? t('validation.required', { key: t('capa.machineConfig.storage.rootVolume.encryptionKey.label') }) : undefined }
 );
 
-watch(isFormValid, (valid) => {
+// isFormValid only reflects fields currently mounted in the DOM: vee-validate
+// deregisters a field's validation state when its RcSection is collapsed
+// (RcSection unmounts its content via v-if), so a required-but-collapsed
+// field would otherwise be silently treated as valid. Re-check the same
+// rules directly against the underlying data so collapsed sections can't
+// hide invalid required fields.
+const requiredFieldValues = computed(() => ({
+  amiId:                   amiId.value,
+  iamInstanceProfile:      iamInstanceProfile.value,
+  rootVolumeSize:          rootVolumeSize.value,
+  rootVolumeType:          rootVolumeType.value,
+  rootVolumeEncryptionKey: rootVolumeEncryptionKey.value,
+}));
+
+const isDataValid = computed(() => {
+  return Object.entries(requiredFieldValues.value).every(([path, val]) => {
+    return getRules(path).every((rule) => !rule(val));
+  });
+});
+
+const formValid = computed(() => isFormValid.value && isDataValid.value);
+
+watch(formValid, (valid) => {
   emit('validationChanged', valid);
 }, { immediate: true });
 
