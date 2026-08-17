@@ -382,9 +382,27 @@ onMounted(async() => {
   }
 });
 
-watch([isFormValid, hasIdentityRef], ([formValid = true, hasIdentityRef]) => {
-  emit('validationChanged', formValid && hasIdentityRef);
+// Workaround for https://github.com/rancher/dashboard/issues/18850 
+const requiredFieldValues = computed(() => ({
+  region:                             region.value,
+  vpc:                                vpcId.value,
+  subnet:                             subnets.value,
+  cidrBlock:                          cidrBlock.value,
+  additionalControlPlaneIngressRules: additionalControlPlaneIngressRules.value,
+  additionalNodeIngressRules:         additionalNodeIngressRules.value,
+}));
+
+const isDataValid = computed(() => {
+  return Object.entries(requiredFieldValues.value).every(([path, val]) => {
+    return getRules(path).every((rule) => !rule(val));
+  });
 });
+
+const formValid = computed(() => isFormValid.value && isDataValid.value);
+
+watch([formValid, hasIdentityRef], ([valid = true, hasIdentityRef]) => {
+  emit('validationChanged', valid && hasIdentityRef);
+}, { immediate: true });
 
 watch(credential, () => {
   setIdentityRef();
