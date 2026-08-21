@@ -16,4 +16,4 @@ With this extension installed you can:
 
 This extension is experimental and available to Rancher Prime customers.
 
-See the [project README](https://github.com/rancher/prov-capi-ui-extensions) for full usage instructions and guidance on building similar extensions for other infrastructure providers.
+See [USAGE.md](./USAGE.md) for full usage instructions (creating/editing clusters, troubleshooting), and the [project README](https://github.com/rancher/prov-capi-ui-extensions) for guidance on building similar extensions for other infrastructure providers.
