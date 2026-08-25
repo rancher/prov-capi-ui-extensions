@@ -14,6 +14,29 @@ entries:
       catalog.cattle.io/ui-component: plugins
       catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
     apiVersion: v2
+    appVersion: 0.0.1
+    created: "2026-08-25T19:10:42.124436459Z"
+    description: SUSE UI Extension to support Rancher v2 provisioning via CAPI CAPA
+    digest: 144a593e92b9e95f74d395b4fa15f066205e1a59c8a61555765b9217ebd88b55
+    icon: https://raw.githubusercontent.com/rancher/prov-capi-ui-extensions/a8e544492e6ca5b00aa4f019062e4503cf909c3c/pkg/capa/assets/amazoncapa.svg
+    name: capa
+    type: application
+    urls:
+    - assets/capa/capa-0.0.1.tgz
+    version: 0.0.1
+  - annotations:
+      catalog.cattle.io/certified: rancher
+      catalog.cattle.io/display-name: SUSE CAPI CAPA UI
+      catalog.cattle.io/experimental: "true"
+      catalog.cattle.io/namespace: cattle-ui-plugin-system
+      catalog.cattle.io/os: linux
+      catalog.cattle.io/permits-os: linux, windows
+      catalog.cattle.io/prime-only: "true"
+      catalog.cattle.io/rancher-version: '>= 2.15.0'
+      catalog.cattle.io/scope: management
+      catalog.cattle.io/ui-component: plugins
+      catalog.cattle.io/ui-extensions-version: '>= 3.0.0 < 4.0.0'
+    apiVersion: v2
     appVersion: 0.0.1-rc2
     created: "2026-08-14T22:51:47.683355243Z"
     description: SUSE UI Extension to support Rancher v2 provisioning via CAPI CAPA
@@ -148,4 +171,4 @@ entries:
     urls:
     - assets/capa/capa-0.0.0-rc1.tgz
     version: 0.0.0-rc1
-generated: "2026-08-14T22:51:47.68219129Z"
+generated: "2026-08-25T19:10:42.124089479Z"
