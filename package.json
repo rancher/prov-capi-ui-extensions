@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "@rancher/shell": "v3.0.13",
-    "ipaddr.js": "2.4.0"
+    "ipaddr.js": "2.5.0"
   },
   "devDependencies": {
     "eslint-plugin-node":    "11.1.0",
