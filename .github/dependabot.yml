@@ -1,0 +1,24 @@
+version: 2
+updates:
+
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    labels: ["area/dependencies"]
+
+  # Maintain dependencies for the root project and each package
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/pkg/*"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    open-pull-requests-limit: 5
+    labels: ["area/dependencies"]
