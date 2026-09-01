@@ -9,7 +9,7 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
-    labels: ["area/dependencies"]
+    labels: ["dependencies"]
 
   # Maintain dependencies for the root project and each package
   - package-ecosystem: "npm"
@@ -21,4 +21,4 @@ updates:
     cooldown:
       default-days: 7
     open-pull-requests-limit: 5
-    labels: ["area/dependencies"]
+    labels: ["dependencies"]
