@@ -25,6 +25,6 @@
     "serve-pkgs": "./node_modules/@rancher/shell/scripts/serve-pkgs",
     "publish-pkgs": "./node_modules/@rancher/shell/scripts/extension/publish",
     "parse-tag-name": "./node_modules/@rancher/shell/scripts/extension/parse-tag-name",
-    "lint": "./node_modules/.bin/eslint --ext .js,.ts,.vue pkg/capa"
+    "lint": "./node_modules/.bin/eslint pkg/${PKG:-capa}"
   }
 }
