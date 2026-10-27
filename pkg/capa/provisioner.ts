@@ -2,7 +2,9 @@ import { IClusterProvisioner, ClusterProvisionerContext } from '@shell/core/type
 import {
   createMachinePoolMachineConfig, initInfrastructureCluster, saveMachinePoolConfigs, cleanupMachinePoolConfigs, saveInfrastructureCluster
 } from './utils';
-import { AWS_CLUSTER_SCHEMA, AWS_MACHINE_TEMPLATE_SCHEMA, InfrastructureClusterResource } from './types/capa';
+import {
+  AWS_CLUSTER_KIND, AWS_CLUSTER_SCHEMA, AWS_MACHINE_TEMPLATE_KIND, AWS_MACHINE_TEMPLATE_SCHEMA, InfrastructureClusterResource
+} from './types/capa';
 import { CAPI } from '@shell/config/types';
 import InfrastructureClusterConfiguration from './components/InfrastructureClusterConfiguration.vue';
 import ProvisioningClusterConfiguration from './components/ProvisioningClusterConfiguration.vue';
@@ -19,8 +21,31 @@ export const detailTabs = {
 };
 
 export const PROVIDER = 'awsmachinetemplate';
+
+/**
+ * Does this provisioning cluster reference CAPA infrastructure?
+ *
+ * This only reads the cluster's own spec, so unlike `machineProvider` (which resolves through the
+ * management cluster's `status.info`) it is answerable as soon as the provisioning cluster itself
+ * is loaded, and for a cluster that hasn't finished provisioning
+ *
+ * A CAPA cluster's `infrastructureRef` points at an AWSCluster, and its machine pools reference
+ * AWSMachineTemplates
+ */
+export function hasCAPAInfrastructure(cluster: any): boolean {
+  const rkeConfig = cluster?.spec?.rkeConfig;
+
+  const isCAPAKind = (ref: any, kind: string) => ref?.kind?.toLowerCase() === kind;
+
+  if (isCAPAKind(rkeConfig?.infrastructureRef, AWS_CLUSTER_KIND)) {
+    return true;
+  }
+
+  return (rkeConfig?.machinePools || []).some((pool: any) => isCAPAKind(pool?.machineConfigRef, AWS_MACHINE_TEMPLATE_KIND));
+}
+
 export class CAPAProvisioner implements IClusterProvisioner {
-  static ID = PROVIDER
+  static ID = PROVIDER;
 
   constructor(private context: ClusterProvisionerContext) {
     context.dispatch('plugins/mapDriver', { name: this.id, to: 'aws' }, { root: true });

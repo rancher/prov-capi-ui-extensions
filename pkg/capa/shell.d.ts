@@ -151,6 +151,16 @@ declare module 'lodash/merge' {
   export default function merge<TObject>(object: TObject, ...sources: any[]): TObject & Record<string, any>;
 }
 
+declare module 'lodash/isEqual' {
+  export default function isEqual(value: any, other: any): boolean;
+}
+
+declare module 'js-yaml';
+
+declare module '@shell/config/elemental-types' {
+  export const KIND: { MACHINE_INV_SELECTOR_TEMPLATES: string };
+}
+
 declare module '@shell/config/query-params' {
   export const _CREATE: string;
 }

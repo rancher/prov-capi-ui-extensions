@@ -2,6 +2,11 @@ import type { ClusterProvisionerContext } from '@shell/core/types';
 
 export const AWS_MACHINE_TEMPLATE_SCHEMA = 'infrastructure.cluster.x-k8s.io.awsmachinetemplate';
 export const AWS_CLUSTER_SCHEMA = 'infrastructure.cluster.x-k8s.io.awscluster';
+// The identity kinds (AWSClusterStaticIdentity and friends) all live in this group
+export const AWS_IDENTITY_GROUP = 'infrastructure.cluster.x-k8s.io';
+// Lowercased, to compare against the `kind` of a ref without worrying about its casing
+export const AWS_CLUSTER_KIND = 'awscluster';
+export const AWS_MACHINE_TEMPLATE_KIND = 'awsmachinetemplate';
 export type Translator = (key: string, args?: Record<string, any>) => string;
 export type StringMap = Record<string, string>;
 export type Tags = Record<string, string>;

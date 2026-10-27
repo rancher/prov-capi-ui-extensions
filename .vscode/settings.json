@@ -11,10 +11,6 @@
     ".vscode": true,
     "babel.config.js": true,
     "jsconfig.json": true,
-    "LICENSE": true,
-    "node_modules": true,
-    "pkg/**/.shell": true,
-    "pkg/**/node_modules": true,
-    "yarn-error.log": true
+    "LICENSE": true
   }
 }

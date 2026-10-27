@@ -10,7 +10,7 @@
     "ipaddr.js": "2.5.0"
   },
   "devDependencies": {
-    "eslint-plugin-node":    "11.1.0",
+    "eslint-plugin-node": "11.1.0",
     "eslint-plugin-promise": "7.3.0"
   },
   "resolutions": {

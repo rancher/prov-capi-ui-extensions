@@ -209,6 +209,17 @@ capa:
     fetchingKmsClient: "Error fetching KMS client: {error}"
     fetchingCloudCredential: "Error fetching Rancher Cloud Credential details: {error}"
     missingIdentityRef: "The selected cloud credential must contain a \"{annotation}\" annotation pointing to an AWSClusterStaticIdentity"
+  resourceGraph:
+    groups:
+      machineTemplates: AWS Machine Templates
+      infrastructureCluster: AWS Infrastructure Cluster
+      identityReference: AWS Identity Reference
+    banners:
+      unsavedMachineTemplate: A new machine template has been created and the provisioning cluster YAML updated to reference it. Save the cluster YAML to apply the changes.
+    replaceMachineTemplate:
+      title: Replace Machine Template
+      body: This will create a new machine template, update the reference to it in the provisioning cluster, and save the provisioning cluster. Do you want to proceed?
+      bodyClusterModified: This will create a new machine template, update the reference to it in the provisioning cluster, and save the provisioning cluster, including its unsaved changes. Do you want to proceed?
 
 cluster:
   provider:

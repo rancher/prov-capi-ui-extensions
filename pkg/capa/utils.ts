@@ -1,8 +1,11 @@
+import jsyaml from 'js-yaml';
+import { RelatedResourceContext } from '@shell/core/types';
 import { normalizeName } from '@shell/utils/kube';
 import { DEFAULT_WORKSPACE } from '@shell/config/types';
 import { set, diff, isEmpty } from '@shell/utils/object';
 import { createDoNotLogError } from '@shell/utils/error';
 import { handleConflict } from '@shell/plugins/dashboard-store/normalize';
+import { poolUsing } from '@shell/utils/machine-pools';
 import {
   AWS_MACHINE_TEMPLATE_SCHEMA, AWS_CLUSTER_SCHEMA, InfrastructureClusterResource, InfrastructureMachineResource, ClusterValue, MachineConfigSchema, MachinePool, PoolEntry, StoreContext
 } from './types/capa';
@@ -359,6 +362,122 @@ export async function createMachinePoolMachineConfig(machineConfigSchema: Machin
   return config;
 }
 
+/**
+ * Normalize the pool's name, and return the prefix for names generated for the pool
+ */
+function normalizePool(entry: PoolEntry, clusterName: string): string {
+  entry.pool.name = normalizeName(entry.pool.name) || 'pool';
+  const prefix = `${ clusterName }-${ entry.pool.name }`;
+
+  return prefix.slice(0, 50).toLowerCase();
+}
+
+/**
+ * Upstream CAPI machine templates are immutable: create a replacement resource
+ * with the current spec values and update the pool reference.
+ *
+ * The replaced template is returned, not removed: the saved cluster references it until the
+ * cluster is saved with the new reference
+ *
+ * @returns The replaced template, or null when there was nothing to replace
+ */
+async function replaceMachineConfig(entry: PoolEntry, prefixFormatted: string, context: StoreContext): Promise<InfrastructureMachineResource | null> {
+  if (!await machineConfigWasModified(entry, context)) {
+    return null;
+  }
+
+  const oldConfig = entry.config;
+
+  if (!oldConfig) {
+    return null;
+  }
+
+  // Clone before mutating so oldConfig retains its identity (links/id) for removal.
+  const newConfig = await context.dispatch('management/clone', { resource: oldConfig }) as InfrastructureMachineResource;
+
+  delete newConfig.id;
+  delete newConfig.metadata.name;
+  delete newConfig.metadata.resourceVersion;
+  delete newConfig.metadata.uid;
+  delete newConfig.links;
+  newConfig.metadata.generateName = `nc-${ prefixFormatted }-`;
+
+  const neu = await newConfig.save();
+
+  entry.config = neu;
+  entry.pool.machineConfigRef.name = neu.metadata.name;
+
+  return oldConfig;
+}
+
+/**
+ * Create the machine template of a new pool, and point the pool at it
+ */
+async function createMachineConfig(entry: PoolEntry, prefixFormatted: string): Promise<void> {
+  if (!entry.config) {
+    throw new Error(`Missing machine config for pool "${ entry.pool.name }"`);
+  }
+
+  if (!entry.config.metadata?.name) {
+    entry.config.metadata.generateName = `nc-${ prefixFormatted }-`;
+  }
+
+  const neu = await entry.config.save();
+
+  entry.config = neu;
+  entry.pool.machineConfigRef.name = neu.metadata.name;
+  entry.create = false;
+  entry.update = true;
+}
+
+/**
+ * The cluster YAML in the editor has a pool referencing the machine config of `ctx`, which the
+ * saved cluster does not have
+ *
+ * True after a save points a pool at a replacement machine config, until the cluster is saved
+ *
+ * @param ctx The context of the machine config's related resource
+ */
+export function hasUnsavedMachinePool(ctx: RelatedResourceContext): boolean {
+  const name = ctx.resource?.metadata?.name;
+
+  if (!name || poolUsing(ctx.primaryResource, name)) {
+    return false;
+  }
+
+  try {
+    const clusterYaml = ctx.editorState.yaml[ctx.primaryNodeId] ?? ctx.initialYaml[ctx.primaryNodeId];
+
+    // js-yaml resolves to v3 here, whose default schema also loads `!!js/*` types
+    return !!poolUsing(jsyaml.load(clusterYaml, { schema: jsyaml.JSON_SCHEMA }), name);
+  } catch {
+    // the cluster yaml in the editor can be invalid while it is edited
+    return false;
+  }
+}
+
+/**
+ * Save the machine template of one pool edited in the multi-resource YAML editor, as
+ * `saveMachinePoolConfigs` does
+ *
+ * @returns The replaced template, or null when there was nothing to replace
+ */
+export async function saveMachinePoolConfigYaml(entry: PoolEntry, clusterName: string, context: StoreContext): Promise<InfrastructureMachineResource | null> {
+  const prefixFormatted = normalizePool(entry, clusterName);
+
+  try {
+    if (entry.create) {
+      await createMachineConfig(entry, prefixFormatted);
+
+      return null;
+    }
+
+    return await replaceMachineConfig(entry, prefixFormatted, context);
+  } catch (e) {
+    throw new Error(formatErrorMessage(context, 'capa.errors.savingMachineConfig', e));
+  }
+}
+
 export async function saveMachinePoolConfigs(pools: PoolEntry[], cluster: ClusterValue, context: StoreContext): Promise<void> {
   const finalPools: MachinePool[] = [];
   const clusterName = cluster.metadata?.name || 'cluster';
@@ -368,56 +487,18 @@ export async function saveMachinePoolConfigs(pools: PoolEntry[], cluster: Cluste
       continue;
     }
 
-    entry.pool.name = normalizeName(entry.pool.name) || 'pool';
-    const prefix = `${ clusterName }-${ entry.pool.name }`;
-
-    const prefixFormatted = prefix.slice(0, 50).toLowerCase();
+    const prefixFormatted = normalizePool(entry, clusterName);
 
     try {
       if (entry.create) {
-        if (!entry.config) {
-          throw new Error(`Missing machine config for pool "${ entry.pool.name }"`);
-        }
-
-        if (!entry.config.metadata?.name) {
-          entry.config.metadata.generateName = `nc-${ prefixFormatted }-`;
-        }
-
-        const neu = await entry.config.save();
-
-        entry.config = neu;
-        entry.pool.machineConfigRef.name = neu.metadata.name;
-        entry.create = false;
-        entry.update = true;
+        await createMachineConfig(entry, prefixFormatted);
       } else if (entry.update) {
-        // Upstream CAPI machine templates are immutable: create a replacement resource
-        // with the current spec values, update the pool reference, then remove the old one.
-        if (!await machineConfigWasModified(entry, context)) {
-          finalPools.push(entry.pool);
-          continue;
-        }
-
-        const oldConfig = entry.config;
+        const oldConfig = await replaceMachineConfig(entry, prefixFormatted, context);
 
         if (!oldConfig) {
           finalPools.push(entry.pool);
           continue;
         }
-
-        // Clone before mutating so oldConfig retains its identity (links/id) for removal.
-        const newConfig = await context.dispatch('management/clone', { resource: oldConfig }) as InfrastructureMachineResource;
-
-        delete newConfig.id;
-        delete newConfig.metadata.name;
-        delete newConfig.metadata.resourceVersion;
-        delete newConfig.metadata.uid;
-        delete newConfig.links;
-        newConfig.metadata.generateName = `nc-${ prefixFormatted }-`;
-
-        const neu = await newConfig.save();
-
-        entry.config = neu;
-        entry.pool.machineConfigRef.name = neu.metadata.name;
 
         // Defer removing the old (now-replaced) template until after the cluster
         // save commits the new machineConfigRef. Removing it here (before the
