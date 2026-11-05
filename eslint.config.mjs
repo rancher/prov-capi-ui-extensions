@@ -1,7 +1,28 @@
+import globals from 'globals';
+import pluginJest from 'eslint-plugin-jest';
 import shellConfig from '@rancher/shell/eslint.config.base.mjs';
 
 export default [
   ...shellConfig,
+
+  // Unit tests. `globals` and `eslint-plugin-jest` come from `@rancher/shell`, the same way as the
+  // rest of the eslint toolchain. Without this, `describe`/`it`/`expect`/`jest` are reported as
+  // undefined in every test file.
+  {
+    files: [
+      '**/__tests__/**/*.{js,ts}',
+      '**/*.test.{js,ts}',
+      'jest.config.js',
+      'jest.setup.js',
+    ],
+    plugins:         { jest: pluginJest },
+    languageOptions: { globals: { ...globals.jest } },
+    rules:           {
+      ...pluginJest.configs['flat/recommended'].rules,
+      'jest/no-commented-out-tests': 'off',
+      'jest/no-disabled-tests':      'off',
+    },
+  },
 
   // Project-specific ignores on top of the shell defaults (node_modules, dist, dist-pkg,
   // coverage and dotfiles are already ignored by the shared config).
@@ -14,6 +35,10 @@ export default [
       'ksconfig.json',
       'shell/utils/dynamic-importer.js',
       'shell/assets/fonts',
+      'cypress/downloads',
+      'cypress/reports',
+      'cypress/screenshots',
+      'cypress/videos',
     ],
   },
   {

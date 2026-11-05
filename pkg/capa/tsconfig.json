@@ -39,7 +39,8 @@
       "@components/*": [
         "@rancher/components/*"
       ]
-    }
+    },
+    "resolveJsonModule": true
   },
   "include": [
     "**/*.ts",

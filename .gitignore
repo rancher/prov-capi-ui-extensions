@@ -71,3 +71,13 @@ Thumbs.db
 
 # Locally built assets (extensions)
 dist-pkg
+# Unit test reports
+unit-test-reports
+
+# Cypress run artifacts
+cypress/downloads
+cypress/reports
+cypress/screenshots
+cypress/videos
+browser-logs
+serve-pkgs.log

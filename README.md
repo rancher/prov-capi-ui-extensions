@@ -72,8 +72,51 @@ yarn install
 yarn dev          # serves the extension(s) under pkg/ for local testing against a Rancher instance
 yarn build         # production build
 yarn build-pkg     # build individual extension package(s)
-yarn lint          # eslint over pkg/capa (adjust the script/path for a new package)
+yarn lint          # eslint over pkg/capa and cypress/ (adjust the script/path for a new package)
+yarn test          # unit tests (jest)
 yarn publish-pkgs  # package + publish extension chart(s), used by CI
 ```
+
+### Testing
+
+#### Unit tests
+
+Jest, set up the same way as the [Rancher extension creator](https://github.com/rancher/dashboard/tree/master/creators/extension) (`jest.config.js`, `jest.setup.js`). Tests live in `__tests__/` folders next to the code they cover, as `*.test.ts`, and use `@vue/test-utils` to mount components.
+
+Auto-imported folders (`machine-config/`, `edit/`, `detail/`, `list/`, ...) are fine for `__tests__/` as long as everything in it is `.ts`: in dev, `yarn dev` registers any `.vue`, `.js` or `.yaml` file it finds in their subfolders as an extension type. `models/` is the exception: the package build registers every file in its subfolders, so put model tests in the package's root `__tests__/`. The package build type-checks test files too, so `yarn build-pkg capa` has to pass as well.
+
+```sh
+yarn test                  # all unit tests
+yarn test --coverage       # with a coverage report in coverage/unit
+yarn test pkg/capa/components/__tests__/Networking.test.ts
+```
+
+CI: `.github/workflows/unit-tests.yml` runs lint and the unit tests on every pull request.
+
+#### E2E tests
+
+Cypress, using the page objects, commands and config from [`@rancher/cypress`](https://www.npmjs.com/package/@rancher/cypress):
+
+```
+cypress.config.ts               extends @rancher/cypress's config
+cypress/e2e/tests/              specs (*.spec.ts), tagged @adminUser / @jenkins for @cypress/grep
+cypress/e2e/po/                 page objects for the extension's pages
+cypress/e2e/blueprints/         canned API responses
+cypress/e2e/utils/              API and stub helpers
+```
+
+The specs never touch AWS or create anything on the Rancher they run against. `cypress/e2e/utils/capa-stubs.ts` answers every AWS call the form makes through `/meta/proxy` with canned responses, adds a fake AWS cloud credential, and answers the AWSMachineTemplate / AWSCluster / provisioning cluster create requests in the browser. Any other write fails the test. So no AWS account is needed. The Rancher does need Turtles with the `aws` CAPIProvider installed, otherwise the provisioner is hidden.
+
+To run them against a local dev server (`yarn dev`, proxying to such a Rancher):
+
+```sh
+TEST_BASE_URL=https://localhost:8005 API=https://localhost:8005 \
+  TEST_USERNAME=admin TEST_PASSWORD=<password> TEST_SKIP=setup \
+  yarn cy:open    # or: yarn cy:run --browser chrome
+```
+
+`API` has to match `TEST_BASE_URL`, because the login cookie is set for the dev server's host. To run against a Rancher with the extension already installed, point both at that Rancher instead.
+
+CI: `.github/workflows/e2e.yml` installs Rancher Prime (2.16 and 2.15) on k3s, installs the CAPA provider through Turtles (`scripts/e2e-install-capa-provider.sh`), builds this branch's extension and developer-loads it (`scripts/e2e-create-uiplugin.sh`), then runs every `@adminUser` spec not tagged `@jenkins`. Tag a spec `@jenkins` if it needs real cloud credentials.
 
 `yarn dev` runs `@rancher/shell`'s dev server, which serves your extension(s) so they can be loaded into a running Rancher UI for local testing — see the [Rancher Extensions developer docs](https://github.com/rancher/dashboard) in the `dashboard` repo (`shell/`) for the underlying extension framework, and the [Cluster API documentation](https://cluster-api.sigs.k8s.io/) for the upstream CRDs/concepts your provider extension will surface.
