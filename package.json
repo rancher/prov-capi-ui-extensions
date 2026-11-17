@@ -10,13 +10,13 @@
     "ipaddr.js": "2.5.0"
   },
   "devDependencies": {
-    "@types/lodash":         "4.17.25",
+    "@types/lodash":         "4.17.27",
     "eslint-plugin-node":    "11.1.0",
     "eslint-plugin-promise": "7.3.0"
   },
   "resolutions": {
     "@types/node": "26.2.0",
-    "@types/lodash": "4.17.25"
+    "@types/lodash": "4.17.27"
   },
   "scripts": {
     "dev": "NODE_ENV=dev ./node_modules/.bin/vue-cli-service serve",
