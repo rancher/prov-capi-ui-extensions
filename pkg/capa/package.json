@@ -1,7 +1,7 @@
 {
   "name": "capa",
   "description": "Provisions and manages Kubernetes clusters on AWS through Cluster API Provider AWS (CAPA)",
-  "version": "0.0.1",
+  "version": "0.0.2-rc1",
   "private": false,
   "icon": "https://raw.githubusercontent.com/rancher/prov-capi-ui-extensions/a8e544492e6ca5b00aa4f019062e4503cf909c3c/pkg/capa/assets/amazoncapa.svg",
   "rancher": {
